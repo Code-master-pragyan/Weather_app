@@ -53,6 +53,37 @@ async function getWeather(place) {
   }
 }
 
+async function getForecast(place) {
+  const url = `https://api.openweathermap.org/data/2.5/forecast?q=${place}&appid=${apiKey}&units=metric`;
+
+  const res = await fetch(url);
+  const data = await res.json();
+
+  const container = document.getElementById("forecast-days");
+  container.innerHTML = ""; // clear old cards
+
+  // API returns data every 3 hours → pick 1 forecast per day (12:00 pm)
+  const dailyData = data.list.filter(item => item.dt_txt.includes("12:00:00"));
+
+  // Show first 3 days
+  dailyData.slice(0, 3).forEach(day => {
+    const date = new Date(day.dt * 1000).toLocaleDateString("en-US", { weekday: "long" });
+    const icon = day.weather[0].icon;
+    const temp = Math.round(day.main.temp);
+    const desc = day.weather[0].description;
+
+    container.innerHTML += `
+            <div class="day-card">
+                <div class="day-date">${date}</div>
+                <img src="https://openweathermap.org/img/wn/${icon}.png">
+                <div class="day-temp">${temp}°C</div>
+                <div class="day-desc">${desc}</div>
+            </div>
+        `;
+  });
+}
+
+
 // Form submit handler
 form.addEventListener("submit", (e) => {
   e.preventDefault();
@@ -64,4 +95,5 @@ form.addEventListener("submit", (e) => {
   }
 
   getWeather(place);
+  getForecast(place);
 });
